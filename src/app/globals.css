@@ -93,6 +93,7 @@ body {
 
         h1 {
             @apply md:mt-32 mt-40 text-8xl md:text-[20vw] leading-none text-center font-modern-negra;
+            visibility: hidden;
         }
 
         .left-leaf {
@@ -111,10 +112,12 @@ body {
 
                 p:nth-of-type(2) {
                     @apply font-modern-negra text-6xl text-yellow max-w-xl;
+                    visibility: hidden; /* ****************** 깜빡임 방지, 처음에 보이지 않는 상태로함  */
                 }
 
                 p:last-of-type {
                     @apply 2xl:text-start text-center;
+                    visibility: hidden; /*  ****************** 깜빡임 방지, 처음에 보이지 않는 상태로함  */
                 }
 
                 .view-cocktails {
