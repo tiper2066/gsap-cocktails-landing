@@ -135,8 +135,13 @@ body {
         }
     }
 
+    .video-container {
+        @apply absolute bottom-0 left-0 w-full h-[80vh] z-0; /* 뷰포트 하단에 고정 */
+    }
+
+    /* 비디오가 컨테이너에 맞게 표시 */
     video {
-        @apply w-full md:h-[80%] h-1/2 absolute bottom-0 left-0 md:object-contain object-bottom object-cover;
+        @apply w-full h-full md:object-contain object-bottom object-cover;
     }
 
     #cocktails {

@@ -1,61 +1,99 @@
 'use client';
 import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import { SplitText, ScrollTrigger } from 'gsap/all';
-import { gsap } from 'gsap';
+import { useRef, useEffect } from 'react';
+import { useMediaQuery } from 'react-responsive';
 
-gsap.registerPlugin(ScrollTrigger, SplitText); // ScrollTrigger, SplitText 플러그인 등록
+gsap.registerPlugin(ScrollTrigger, SplitText);
 
 const Hero = () => {
-    useGSAP(() => {
-        // .title 요소를 글자로 분리된 배열과 단어로 분리된 배열 생성
-        const heroSplit = new SplitText('.title', { type: 'chars, words' });
-        // .subtitle 요소를 줄단위로 분리된 배열 생성
-        const paragraphSplit = new SplitText('.subtitle', { type: 'lines' });
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const videoContainerRef = useRef<HTMLDivElement | null>(null); // 비디오 컨테이너 참조 추가
+    const isMobile = useMediaQuery({ maxWidth: 767 });
 
-        // 타이틀은 글자마다 .text-gradient 클래스 적용 (흰색에서 회색으로 라인 그라디언트)
+    useGSAP(() => {
+        const heroSplit = new SplitText('.title', {
+            type: 'chars, words',
+        });
+
+        const paragraphSplit = new SplitText('.subtitle', {
+            type: 'lines',
+        });
+
         heroSplit.chars.forEach((char) => char.classList.add('text-gradient'));
 
-        // 애니메이션 시작 직전에 타이틀을 다시 보이게 설정
         gsap.set('.title', { visibility: 'visible' });
         gsap.set('.subtitle', { visibility: 'visible' });
 
-        // 타이틀을 0.06초 마다 한글자씩 서서히 위로 나타나는 파도효과 적용
         gsap.from(heroSplit.chars, {
             opacity: 0,
-            yPercent: 100, // 아래로 요소의 높이만큼 이동
+            yPercent: 100,
             duration: 1.8,
-            ease: 'expo.out', // 빠르게시작해서 서서히 완만해지는 속도
+            ease: 'expo.out',
             stagger: 0.06,
         });
 
-        // 서브타이틀을 0.06초 마다 한줄씩 서서히 위로 나타나는 효과 적용
         gsap.from(paragraphSplit.lines, {
             opacity: 0,
-            yPercent: 100, // 아래로 요소의 높이만큼 이동
+            yPercent: 100,
             duration: 1.8,
-            ease: 'expo.out', // 빠르게시작해서 서서히 완만해지는 속도
+            ease: 'expo.out',
             stagger: 0.06,
-            delay: 1, // 1 초 후에 시작
+            delay: 1,
         });
 
-        // 스크롤 시 나뭇잎 애니메이션하기
         gsap.timeline({
             scrollTrigger: {
-                trigger: '#hero', // 대상: #hero 요소
-                start: 'top top', // 대상의 상단이 화면 상단에 닿을 때 애님 시작
-                end: 'bottom top', // 대상의 바닥이 화면 상단에 닿을 때 애님 종료
-                scrub: true, // 부드러운 애님
+                trigger: '#hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: true,
             },
         })
-            .to('.right-leaf', { y: 200 }, 0) // 우측 나뭇잎은 아래로 200 이동
-            .to('.left-leaf', { y: -200 }, 0); // 좌측 나뭇잎을 위로 200 이동
+            .to('.right-leaf', { y: 200 }, 0)
+            .to('.left-leaf', { y: -200 }, 0);
+
+        if (!videoRef.current || !videoContainerRef.current) return;
+
+        const startValue = isMobile ? 'top 50%' : 'center 60%';
+        const endValue = isMobile ? 'bottom 20%' : 'bottom 10%';
+
+        gsap.timeline({
+            scrollTrigger: {
+                trigger: videoContainerRef.current, // 비디오 컨테이너를 트리거로 사용
+                start: startValue,
+                end: endValue,
+                scrub: true,
+                pin: true,
+                markers: true, // 디버깅용 마커 활성화
+            },
+        }).to(videoRef.current, {
+            currentTime: videoRef.current.duration || 0, // 비디오 길이가 정의되지 않은 경우 0
+            ease: 'none',
+        });
+    }, []);
+
+    // 비디오 로드 상태 디버깅
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => {
+                console.log(
+                    'Video metadata loaded:',
+                    videoRef.current?.duration
+                );
+            };
+            videoRef.current.onerror = () => {
+                console.error('Video failed to load');
+            };
+        }
     }, []);
 
     return (
         <>
-            {/* noizy : 적용대상에 노이즈 효과 적용 */}
-            <section id='hero' className='noizy'>
+            <section id='hero' className='noisy'>
                 <h1 className='title'>MOJITO</h1>
+
                 <img
                     src='/images/hero-left-leaf.png'
                     alt='left-leaf'
@@ -66,27 +104,40 @@ const Hero = () => {
                     alt='right-leaf'
                     className='right-leaf'
                 />
+
                 <div className='body'>
                     <div className='content'>
-                        {/* 기본적으로 숨겨져 있다가 768px 이상에서 보임 */}
                         <div className='space-y-5 hidden md:block'>
                             <p>Cool. Crisp. Classic.</p>
                             <p className='subtitle'>
                                 Sip the Spirit <br /> of Summer
                             </p>
                         </div>
+
                         <div className='view-cocktails'>
                             <p className='subtitle'>
-                                Every cockail on our menu is a blend of premium
+                                Every cocktail on our menu is a blend of premium
                                 ingredients, creative flair, and timeless
-                                recipes - designed to delight your senses.
+                                recipes — designed to delight your senses.
                             </p>
-                            <a href='#cocktails'>View Cocktails</a>
+                            <a href='#cocktails'>View cocktails</a>
                         </div>
                     </div>
                 </div>
             </section>
+
+            <div className='video-container' ref={videoContainerRef}>
+                <video
+                    ref={videoRef}
+                    muted
+                    playsInline
+                    preload='auto'
+                    src='/videos/output.mp4'
+                    className='video'
+                />
+            </div>
         </>
     );
 };
+
 export default Hero;
